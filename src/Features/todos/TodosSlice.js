@@ -9,14 +9,38 @@ try {
   return rejectWithValue([],error)
 }
 });
-export const addAsyncTodos= createAsyncThunk("todos/addAsyncTodos",async(payload,{rejectWithValue})=>{
+export const addAsyncTodos= createAsyncThunk
+("todos/addAsyncTodos",async(payload,{rejectWithValue})=>{
 try {
-  const Response= await axios.get("http://localhost:3001/todos",{ 
+  const Response= await axios.post("http://localhost:3001/todos",{ 
   id: Date.now(),
   title:payload.title,
   completed:false
 })
  return Response.data
+ 
+} catch (error) {
+  return rejectWithValue([],error)
+}
+});
+export const toggleCompleteAsync= createAsyncThunk
+("todos/toggleCompleteAsync",async(payload,{rejectWithValue})=>{
+try {
+  const Response= await axios.put(`http://localhost:3001/todos/${payload.id}`,{
+    completed: payload.completed,
+    title:payload.title
+  })
+ return Response.data
+ 
+} catch (error) {
+  return rejectWithValue([],error)
+}
+});
+export const deleteAsyncTodo= createAsyncThunk
+("todos/deleteAsyncTodo",async(payload,{rejectWithValue})=>{
+try {
+   await axios.delete(`http://localhost:3001/todos/${payload.id}`)
+ return {id:payload.id}
  
 } catch (error) {
   return rejectWithValue([],error)
@@ -63,6 +87,14 @@ const counterSlice = createSlice({
       },
       [addAsyncTodos.fulfilled]:(state,action)=>{
         state.todos.push(action.payload)
+      },
+      [toggleCompleteAsync.fulfilled]:(state,action)=>{
+         const selectedTodo=state.todos.find((t)=> t.id === action.payload.id)
+         selectedTodo.completed = action.payload.completed;
+      },
+      [deleteAsyncTodo.fulfilled]:(state,action)=>{
+         state.todos = state.todos.filter((t)=> t.id !== action.payload.id)
+         
       }
     
     }
